@@ -1,21 +1,41 @@
 ﻿import requests
 import time
 import os
+import sqlite3
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
-app = FastAPI(title="Cockpit Supremo - Metrópole 226 & Malha 7770777", version="3.0")
+app = FastAPI(title="Cockpit Persistente - Metrópole 226 & Malha 7770777", version="4.0")
 
-# --- REGISTRO DE MEMÓRIA PROTEGIDA E ESTADOS DA MALHA ---
-COFRE_CUSTODIA = {"BTC": 0.0, "ETH": 0.0, "SOL": 0.0}
-SALDO_226 = {"usuario_global": 0.0}
+DB_PATH = "C:/226Coins/vendas.db"
+
+def inicializar_banco_persistente():
+    """Cria a tabela do cofre no banco de dados vendas.db se não existir (Compliance Total)."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS vault_persistente (
+            id TEXT PRIMARY KEY,
+            btc REAL,
+            eth REAL,
+            sol REAL,
+            saldo_226 REAL
+        )
+    ''')
+    # Inicializa o registro do usuário global padrão se estiver vazio
+    cursor.execute("SELECT id FROM vault_persistente WHERE id='usuario_global'")
+    if not cursor.fetchone():
+        cursor.execute("INSERT INTO vault_persistente VALUES ('usuario_global', 0.0, 0.0, 0.0, 0.0)")
+    conn.commit()
+    conn.close()
+
+inicializar_banco_persistente()
 
 ESTADO_MALHA = {
     "orquestrador_malha": {"arquivo": "orquestrador_malha.py", "status": "ATIVO", "pid": 7770},
     "agente_autonomo": {"arquivo": "agente_autonomo_integrado.py", "status": "CONGRUENTE", "ciclos": 4080},
-    "agente_elias": {"arquivo": "agente_elias_integrado.py", "status": "PROCESSANDO", "vault": "SINCRONIZADO"},
-    "agente_cineasta": {"arquivo": "agente_cineasta.py", "status": "STANDBY", "modo": "RENDER"},
+    "agente_elias": {"arquivo": "agente_elias_integrado.py", "status": "PROCESSANDO", "vault": "PERSISTENTE_DB"},
     "conversor_quantico": {"arquivo": "conversor_quantico.py", "status": "PRONTO", "mid": "conversor_quantico.mid"}
 }
 
@@ -29,53 +49,67 @@ class PagamentoComercio(BaseModel):
     moeda_destino: str
 
 def obter_telemetria_mercado():
-    """Puxador de dados do mercado cripto e fiat com barramento de contingência rápido."""
     url_crypto = "https://coingecko.com"
     url_fiat = "https://er-api.com"
     try:
         res_crypto = requests.get(url_crypto, timeout=5).json()
         res_fiat = requests.get(url_fiat, timeout=5).json()
         return {
-            "BTC": res_crypto["bitcoin"]["usd"],
-            "ETH": res_crypto["ethereum"]["usd"],
-            "SOL": res_crypto["solana"]["usd"],
-            "BRL": res_fiat["rates"]["BRL"],
-            "INR": res_fiat["rates"]["INR"],
-            "USD": 1.0
+            "BTC": res_crypto["bitcoin"]["usd"], "ETH": res_crypto["ethereum"]["usd"], "SOL": res_crypto["solana"]["usd"],
+            "BRL": res_fiat["rates"]["BRL"], "INR": res_fiat["rates"]["INR"], "USD": 1.0
         }
     except Exception:
         return {"BTC": 67000.0, "ETH": 2500.0, "SOL": 150.0, "BRL": 5.60, "INR": 84.0, "USD": 1.0}
 
-# --- INJEÇÃO DA INTERFACE VIVA DIRETAMENTE DO DISCO ---
 @app.get("/", response_class=HTMLResponse)
 def obter_cockpit_supremo():
     caminho_html = "C:/226Coins/index.html"
     if not os.path.exists(caminho_html):
-        raise HTTPException(status_code=404, detail="Arquivo index.html nao encontrado em C:/226Coins/")
+        raise HTTPException(status_code=404, detail="Arquivo index.html nao encontrado.")
     with open(caminho_html, "r", encoding="utf-8") as arquivo:
         return arquivo.read()
 
 @app.get("/status-malha")
 def obter_status_agentes():
-    return {"evento": "Telemetria Quântica Coletada", "origem": "c:\\7770777", "malha": ESTADO_MALHA}
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT btc, eth, sol, saldo_226 FROM vault_persistente WHERE id='usuario_global'")
+    row = cursor.fetchone()
+    conn.close()
+    return {
+        "evento": "Telemetria Persistente Coletada",
+        "origem_disco": DB_PATH,
+        "balanco_real_vault": {"BTC": row[0], "ETH": row[1], "SOL": row[2], "226Coins": row[3]},
+        "malha": ESTADO_MALHA
+    }
 
 @app.post("/depositar-lastro")
 def depositar_e_emitir(dados: TransacaoCofre):
     telemetria = obter_telemetria_mercado()
-    COFRE_CUSTODIA["BTC"] += dados.btc
-    COFRE_CUSTODIA["ETH"] += dados.eth
-    COFRE_CUSTODIA["SOL"] += dados.sol
+    
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT btc, eth, sol, saldo_226 FROM vault_persistente WHERE id='usuario_global'")
+    c_btc, c_eth, c_sol, c_saldo = cursor.fetchone()
+    
+    # Atualiza somando no banco físico
+    n_btc = c_btc + dados.btc
+    n_eth = c_eth + dados.eth
+    n_sol = c_sol + dados.sol
     
     valor_usd = (dados.btc * telemetria["BTC"]) + (dados.eth * telemetria["ETH"]) + (dados.sol * telemetria["SOL"])
-    novos_titulos = valor_usd / 1.0 
-    SALDO_226["usuario_global"] += novos_titulos
+    n_saldo = c_saldo + valor_usd
+    
+    cursor.execute("UPDATE vault_persistente SET btc=?, eth=?, sol=?, saldo_226=? WHERE id='usuario_global'", 
+                   (n_btc, n_eth, n_sol, n_saldo))
+    conn.commit()
+    conn.close()
     
     return {
         "gateway": "Chronolog Congruente",
-        "status_malha": "Sincronizada",
-        "cofre_7770777_atualizado": COFRE_CUSTODIA,
-        "novas_226_coins_emitidas": round(novos_titulos, 4),
-        "saldo_total_226": round(SALDO_226["usuario_global"], 4)
+        "status_banco": "Escrita no Disco Concluida",
+        "cofre_fisico_vendas_db": {"BTC": n_btc, "ETH": n_eth, "SOL": n_sol},
+        "saldo_total_persistente_226": round(n_saldo, 4)
     }
 
 @app.post("/consumir-saldo")
@@ -83,16 +117,28 @@ def consumir_saldo_comercio(compra: PagamentoComercio):
     telemetria = obter_telemetria_mercado()
     if compra.moeda_destino not in telemetria:
         raise HTTPException(status_code=400, detail="Par de conversão não suportado.")
+    
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT btc, eth, sol, saldo_226 FROM vault_persistente WHERE id='usuario_global'")
+    c_btc, c_eth, c_sol, c_saldo = cursor.fetchone()
+    
     taxa_cambio = telemetria[compra.moeda_destino]
     custo_em_226 = compra.valor_compra / taxa_cambio
-    if SALDO_226["usuario_global"] < custo_em_226:
-        raise HTTPException(status_code=400, detail="Saldo insuficiente na malha 226.")
-    SALDO_226["usuario_global"] -= custo_em_226
+    
+    if c_saldo < custo_em_226:
+        conn.close()
+        raise HTTPException(status_code=400, detail="Saldo insuficiente no banco de dados físico.")
+        
+    n_saldo = c_saldo - custo_em_226
+    cursor.execute("UPDATE vault_persistente SET saldo_226=? WHERE id='usuario_global'", (n_saldo,))
+    conn.commit()
+    conn.close()
+    
     return {
-        "status": "Transação Liquidada via Orquestrador",
-        "compra_original": f"{compra.valor_compra} {compra.moeda_destino}",
-        "debitado_226_coins": round(custo_em_226, 4),
-        "saldo_restante_226": round(SALDO_226["usuario_global"], 4),
+        "status": "Liquidado e Gravado no Disco",
+        "compra_debitada": f"{compra.valor_compra} {compra.moeda_destino}",
+        "saldo_restante_persistente_226": round(n_saldo, 4),
         "telemetria_aplicada": f"1 USD = {taxa_cambio} {compra.moeda_destino}"
     }
 
