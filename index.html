@@ -3,92 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Metrópole 226 Coins - Painel Global</title>
+    <title>Cockpit Supremo - Malha 7770777 & 226 Coins</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0d1117; color: #c9d1d9; margin: 0; padding: 20px; display: flex; justify-content: center; }
-        .container { max-width: 800px; width: 100%; }
-        h1 { color: #58a6ff; text-align: center; border-bottom: 1px solid #21262d; padding-bottom: 10px; }
-        .card { background-color: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 20px; margin-bottom: 20px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #06090f; color: #c9d1d9; margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .container { max-width: 1000px; width: 100%; }
+        h1 { color: #58a6ff; text-align: center; border-bottom: 1px solid #21262d; padding-bottom: 10px; font-size: 26px; }
+        .grid { display: flex; gap: 20px; margin-bottom: 20px; }
+        .col { flex: 1; background-color: #0d1117; border: 1px solid #30363d; border-radius: 6px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.6); }
         .row { display: flex; gap: 10px; margin-bottom: 10px; }
-        input, select, button { background-color: #21262d; color: #c9d1d9; border: 1px solid #30363d; padding: 10px; border-radius: 6px; flex: 1; font-size: 14px; }
+        input, select, button { background-color: #21262d; color: #c9d1d9; border: 1px solid #30363d; padding: 12px; border-radius: 6px; flex: 1; font-size: 14px; }
         button { background-color: #238636; color: white; cursor: pointer; font-weight: bold; border: none; }
         button:hover { background-color: #2ea44f; }
-        button.secundario { background-color: #21262d; border: 1px solid #30363d; }
-        button.secundario:hover { background-color: #30363d; }
-        pre { background-color: #010409; padding: 15px; border-radius: 6px; border: 1px solid #30363d; overflow-x: auto; color: #7ee787; font-family: monospace; }
-        .status-badge { display: inline-block; padding: 5px 10px; border-radius: 20px; background-color: #238636; color: white; font-size: 12px; font-weight: bold; }
+        button.secundario { background-color: #1f6feb; }
+        button.secundario:hover { background-color: #388bfd; }
+        pre { background-color: #161b22; padding: 15px; border-radius: 6px; border: 1px solid #30363d; overflow-x: auto; color: #7ee787; font-family: monospace; }
+        .badge { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; background-color: #238636; color: white; }
+        .status-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .status-table th, .status-table td { text-align: left; padding: 8px; border-bottom: 1px solid #21262d; font-size: 13px; }
+        .status-table th { color: #8b949e; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🌌 Metrópole 226 Coins</h1>
-        <p style="text-align: center; color: #8b949e;">A Ponte através da qual a Abundância flui</p>
+        <h1>🌌 Cockpit Supremo: Acoplamento Metrópole 226 & Malha 7770777</h1>
+        <p style="text-align: center; color: #8b949e; font-style: italic;">Gateway Chronolog Congruente • Barramento Ativo 8000</p>
 
-        <div class="card">
-            <h2>💰 Seu Terminal 226 Coin</h2>
-            <div class="row">
-                <div>Status do Sistema: <span class="status-badge">Operacional</span></div>
+        <div class="grid">
+            <div class="col">
+                <h2>💰 Banco Central 226 Coins</h2>
+                <div id="saldo-display" style="font-size: 24px; font-weight: bold; color: #58a6ff; margin-bottom: 15px;">
+                    Saldo: 0.0000 226 Coins
+                </div>
+                <h3>📥 Injetar Lastro de Cripto</h3>
+                <div class="row"><input type="number" id="dep-btc" placeholder="Qtd BTC" step="0.01"></div>
+                <div class="row"><input type="number" id="dep-eth" placeholder="Qtd ETH" step="0.1"></div>
+                <div class="row"><input type="number" id="dep-sol" placeholder="Qtd SOL" step="1"></div>
+                <button onclick="dispararRota('depositar-lastro')">Confirmar Depósito & Emitir</button>
             </div>
-            <div id="saldo-display" style="font-size: 24px; font-weight: bold; color: #58a6ff; margin-top: 10px;">
-                Saldo: 0.0000 226 Coins
+
+            <div class="col">
+                <h2>🎛️ Telemetria da Malha 7770777</h2>
+                <button class="secundario" style="margin-bottom: 15px; width: 100%;" onclick="atualizarMalha()">Verificar Integridade dos Agentes</button>
+                <table class="status-table">
+                    <thead>
+                        <tr><th>Agente</th><th>Script</th><th>Status</th></tr>
+                    </thead>
+                    <tbody id="malha-corpo">
+                        <tr><td>orquestrador_malha</td><td>orquestrador_malha.py</td><td><span class="badge">ATIVO</span></td></tr>
+                        <tr><td>agente_autonomo</td><td>agente_autonomo_integrado.py</td><td><span class="badge">CONGRUENTE</span></td></tr>
+                        <tr><td>agente_elias</td><td>agente_elias_integrado.py</td><td><span class="badge">PROCESSANDO</span></td></tr>
+                        <tr><td>conversor_quantico</td><td>conversor_quantico.py</td><td><span class="badge" style="background:#1f6feb">PRONTO</span></td></tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
-        <div class="card">
-            <h3>📥 Depositar Moedas no Cofre (Emitir Lastro)</h3>
+        <div class="col" style="margin-bottom: 20px;">
+            <h3>🛍️ Terminal Pix Cripto Global (Liquidação em Tempo Real)</h3>
             <div class="row">
-                <input type="number" id="dep-btc" placeholder="Qtd Bitcoin (BTC)" step="0.0001">
-                <input type="number" id="dep-eth" placeholder="Qtd Ethereum (ETH)" step="0.01">
-                <input type="number" id="dep-sol" placeholder="Qtd Solana (SOL)" step="0.1">
-            </div>
-            <button onclick="executarTransacao('depositar-lastro')">Confirmar Depósito e Emitir Título</button>
-        </div>
-
-        <div class="card">
-            <h3>🛍️ Simular Compra Comercial (Pix Cripto Global)</h3>
-            <div class="row">
-                <input type="number" id="compra-valor" placeholder="Valor da Compra">
+                <input type="number" id="compra-valor" placeholder="Valor do Débito Comercial">
                 <select id="compra-moeda">
                     <option value="BRL">Real (BRL)</option>
                     <option value="USD">Dólar (USD)</option>
                     <option value="INR">Rúpias (INR)</option>
                 </select>
+                <button onclick="executarCompra()">Liquidar Transação</button>
             </div>
-            <button class="secundario" onclick="executarCompra()">Autorizar Pagamento Instantâneo</button>
         </div>
 
-        <div class="card">
-            <h3>📊 Telemetria Exata do Sistema (JSON Logs)</h3>
-            <pre id="json-output">// Aguardando comandos do núcleo bancário...</pre>
+        <div class="col">
+            <h3>📊 Telemetria do Monitor Chronolog (Logs do Sistema)</h3>
+            <pre id="json-output">// Aguardando comandos do núcleo unificado...</pre>
         </div>
     </div>
 
     <script>
-        // Rota relativa unificada para eliminar bloqueios de CORS do navegador
         const API_BASE = window.location.origin;
 
-        async function ejecutarTransacao(endpoint) {
+        async function dispararRota(endpoint) {
             const dados = {
                 btc: parseFloat(document.getElementById('dep-btc').value) || 0,
                 eth: parseFloat(document.getElementById('dep-eth').value) || 0,
                 sol: parseFloat(document.getElementById('dep-sol').value) || 0
             };
-
             try {
-                const resposta = await fetch(`${API_BASE}/${endpoint}`, {
+                const res = await fetch(`${API_BASE}/${endpoint}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(dados)
                 });
-                
-                const resultado = await resposta.json();
-                document.getElementById('json-output').innerText = JSON.stringify(resultado, null, 4);
-                
-                if (resultado.saldo_total_226 !== undefined) {
-                    document.getElementById('saldo-display').innerText = `Saldo: ${resultado.saldo_total_226.toFixed(4)} 226 Coins`;
+                const res_json = await res.json();
+                document.getElementById('json-output').innerText = JSON.stringify(res_json, null, 4);
+                if (res_json.saldo_total_226 !== undefined) {
+                    document.getElementById('saldo-display').innerText = `Saldo: ${res_json.saldo_total_226.toFixed(4)} 226 Coins`;
                 }
-            } catch (erro) {
-                document.getElementById('json-output').innerText = "Erro crítico na comunicação com o barramento do motor.";
+            } catch (e) {
+                document.getElementById('json-output').innerText = "Falha no barramento de dados.";
             }
         }
 
@@ -97,22 +107,29 @@
                 valor_compra: parseFloat(document.getElementById('compra-valor').value) || 0,
                 moeda_destino: document.getElementById('compra-moeda').value
             };
-
             try {
-                const resposta = await fetch(`${API_BASE}/consumir-saldo`, {
+                const res = await fetch(`${API_BASE}/consumir-saldo`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(dados)
                 });
-                
-                const resultado = await resposta.json();
-                document.getElementById('json-output').innerText = JSON.stringify(resultado, null, 4);
-                
-                if (resultado.saldo_restante_226 !== undefined) {
-                    document.getElementById('saldo-display').innerText = `Saldo: ${resultado.saldo_restante_226.toFixed(4)} 226 Coins`;
+                const res_json = await res.json();
+                document.getElementById('json-output').innerText = JSON.stringify(res_json, null, 4);
+                if (res_json.saldo_restante_226 !== undefined) {
+                    document.getElementById('saldo-display').innerText = `Saldo: ${res_json.saldo_restante_226.toFixed(4)} 226 Coins`;
                 }
-            } catch (erro) {
-                document.getElementById('json-output').innerText = "Erro crítico ao autorizar o pagamento internacional.";
+            } catch (e) {
+                document.getElementById('json-output').innerText = "Erro no motor de conversão quântica.";
+            }
+        }
+
+        async function atualizarMalha() {
+            try {
+                const res = await fetch(`${API_BASE}/status-malha`);
+                const dados = await res.json();
+                document.getElementById('json-output').innerText = JSON.stringify(dados, null, 4);
+            } catch (e) {
+                document.getElementById('json-output').innerText = "Erro ao ler telemetria dos robôs.";
             }
         }
     </script>
